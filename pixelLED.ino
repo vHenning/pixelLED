@@ -1,7 +1,10 @@
-#include "pixelIno.h"
 #include "PixelLED.h"
 
-PixelLED led(PixelLED::BLINKER, CRGB::DarkOrange);
+#define LED_PIN 12
+#define LED_COUNT 144
+#define STEP 0.01
+
+PixelLED led(LED_PIN, LED_COUNT, STEP, PixelLED::BLINKER, CRGB::DarkOrange);
 
 void setup()
 {

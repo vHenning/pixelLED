@@ -3,7 +3,6 @@
 
 #include "ESP_Color.h"
 #include <FastLED.h>
-#include "pixelIno.h"
 #include "RC.h"
 
 class PixelLED
@@ -20,7 +19,7 @@ public:
 
     CRGB color;
 
-    PixelLED(Mode lightMode, CRGB color);
+    PixelLED(int pin, int ledCount, double step, Mode lightMode, CRGB color);
 
     void step();
 
@@ -28,8 +27,10 @@ public:
     void off();
 
 private:
-    CRGB colors[LED_COUNT];
-    RC filters[LED_COUNT];
+    CRGB* colors;
+    RC* filters;
+    double stepSize;
+    int leds;
 
     bool switchOn;
 
