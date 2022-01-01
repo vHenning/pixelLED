@@ -230,13 +230,6 @@ void PixelLED::onOffStep()
     double position = positionFilter.step(desiredPosition);
     // double position = desiredPosition;
 
-    Serial.print("Switch ");
-    Serial.print(switchOn);
-    Serial.print(" Position ");
-    Serial.print(position);
-    Serial.print(" desired position ");
-    Serial.println(desiredPosition);
-
     float max = (float) 0xFF;
     ColorConverter::rgb rgb;
     rgb.r = color.r / max;
