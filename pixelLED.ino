@@ -5,6 +5,7 @@
 #define STEP 0.01
 
 PixelLED led(LED_PIN, LED_COUNT, STEP, PixelLED::BLINKER, CRGB::DarkOrange);
+void sleep(const double step, const unsigned long start);
 
 void setup()
 {
@@ -17,4 +18,23 @@ void loop()
     led.step();
     
     delay(1000 * STEP);
+}
+
+void sleep(const double step, const unsigned long start)
+{
+    long duration = micros() - (long) start;
+
+
+    int stepMicros = 1000000.0 * step;
+    if (duration > stepMicros)
+    {
+        Serial.println("Lasted longer than allowed!");
+        Serial.print("Duration ");
+        Serial.print(duration);
+        Serial.print(" Step ");
+        Serial.println(stepMicros);
+        return;
+    }
+
+    delayMicroseconds(step * 1000000 - duration);
 }
