@@ -4,7 +4,8 @@
 #define LED_COUNT 144
 #define STEP 0.01
 
-PixelLED led(LED_PIN, LED_COUNT, STEP, PixelLED::BLINKER, CRGB::DarkOrange);
+PixelLED led(LED_PIN, LED_COUNT, STEP, PixelLED::ELEGANT_LIGHT, CRGB::DarkOrange);
+
 void sleep(const double step, const unsigned long start);
 
 void setup()
@@ -15,9 +16,20 @@ void setup()
 
 void loop()
 {
+    const static double cycleTime = 5;
+    static int cyclesSinceSwap = 0;
+    ++cyclesSinceSwap;
+
+    unsigned long start = micros();
     led.step();
-    
-    delay(1000 * STEP);
+
+    if (cyclesSinceSwap > cycleTime / STEP)
+    {
+        led.onOff();
+        cyclesSinceSwap = 0;
+    }
+
+    sleep(STEP, start);
 }
 
 void sleep(const double step, const unsigned long start)

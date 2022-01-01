@@ -7,6 +7,7 @@ PixelLED::PixelLED(int pin, int ledCount, double step, Mode lightMode, CRGB colo
     , color(color)
     , switchOn(false)
     , stepSize(step)
+    , positionFilter(step, 200, 0.001)
     , leds(ledCount)
     , colors(new CRGB[ledCount])
     , filters(new RC[ledCount])
@@ -14,7 +15,7 @@ PixelLED::PixelLED(int pin, int ledCount, double step, Mode lightMode, CRGB colo
     for (size_t i = 0; i < ledCount; ++i)
     {
         colors[i] = CRGB::Black;
-        filters[i] = RC(0.005, 20, stepSize);
+        filters[i] = RC(stepSize, 200, 0.0001);
     }
 
     switch (pin)
@@ -60,6 +61,11 @@ void PixelLED::step()
         break;
         case TEST_SMOOTH:
         testSmoothStep();
+        case RUNNING_LIGHT_SMOOTH:
+        runningLightSmoothStep();
+        break;
+        case ELEGANT_LIGHT:
+        onOffStep();
         break;
     }
 
@@ -78,8 +84,44 @@ void PixelLED::runningLightStep()
 
     int previous = counter == 0 ? leds - 1 : counter - 1;
 
-    // TODO
-    colors[previous] = COLOR32_BLACK;
+    colors[previous] = CRGB::Black;
+}
+
+void PixelLED::runningLightSmoothStep()
+{
+    static double position = 0;
+
+    const double SPEED = 100; // LEDs per second
+
+    position += SPEED * stepSize;
+    if (position > leds)
+    {
+        position -= leds;
+    }
+
+    float max = (float) 0xFF;
+    ColorConverter::rgb rgb;
+    rgb.r = color.r / max;
+    rgb.g = color.g / max;
+    rgb.b = color.b / max;
+
+    ColorConverter::hsv hsv = ColorConverter::rgb2hsv(rgb);
+
+    for (size_t i = 0; i < leds; ++i)
+    {
+        double value = 0.0;
+        if (i - (int) position < 5)
+        {
+            value = 1.0;
+        }
+
+        hsv.v = filters[i].step(value);
+
+        ColorConverter::rgb rgb = ColorConverter::hsv2rgb(hsv);
+        colors[i].r = gamma8[(int)(rgb.r * max)];
+        colors[i].g = gamma8[(int)(rgb.g * max)];
+        colors[i].b = gamma8[(int)(rgb.b * max)];
+    }
 }
 
 void PixelLED::blinkerStep()
@@ -161,20 +203,6 @@ void PixelLED::testSmoothStep()
         colors[i].r = rgb.r * max;
         colors[i].g = rgb.g * max;
         colors[i].b = rgb.b * max;
-
-        if (i == 0)
-        {
-            Serial.print("LED Value: ");
-            Serial.print(filterValue);
-            Serial.print(" on: ");
-            Serial.println(on);
-
-            Serial.print(colors[i].r);
-            Serial.print(" ");
-            Serial.print(colors[i].g);
-            Serial.print(" ");
-            Serial.println(colors[i].b);
-        }
     }
 }
 
@@ -188,16 +216,44 @@ void PixelLED::off()
     switchOn = false;
 }
 
+void PixelLED::onOff()
+{
+    switchOn = !switchOn;
+}
+
 void PixelLED::onOffStep()
 {
-    // Position and its derivations
     // position = 0 is at the edges of the strip. Center is LED_COUNT / 2
-    static int position = 0;
-    static float speed = 0;
-    static float acceleration = 0;
+    // double desiredPosition = switchOn ? (double)(leds) / 2.0 : 0;
+    double desiredPosition = switchOn ? leds / 2.0 : 0.0;
     
-    // Constant surge (derivation of acceleration)
-    const float surge = 1;
+    double position = positionFilter.step(desiredPosition);
+    // double position = desiredPosition;
 
-    float currentSurge = 0;
+    Serial.print("Switch ");
+    Serial.print(switchOn);
+    Serial.print(" Position ");
+    Serial.print(position);
+    Serial.print(" desired position ");
+    Serial.println(desiredPosition);
+
+    float max = (float) 0xFF;
+    ColorConverter::rgb rgb;
+    rgb.r = color.r / max;
+    rgb.g = color.g / max;
+    rgb.b = color.b / max;
+
+    ColorConverter::hsv hsv = ColorConverter::rgb2hsv(rgb);
+
+    for (size_t i = 0; i < leds; ++i)
+    {
+        bool pixelOn = i < position || leds - i < position;
+
+        double filterValue = filters[i].step(pixelOn ? 0.3 : 0.0);
+        hsv.v = filterValue;
+        ColorConverter::rgb rgb = ColorConverter::hsv2rgb(hsv);
+        colors[i].r = gamma8[(int)(rgb.r * max)];
+        colors[i].g = gamma8[(int)(rgb.g * max)];
+        colors[i].b = gamma8[(int)(rgb.b * max)];
+    }
 }
