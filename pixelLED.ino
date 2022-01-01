@@ -4,7 +4,7 @@
 #define LED_COUNT 144
 #define STEP 0.01
 
-PixelLED led(LED_PIN, LED_COUNT, STEP, PixelLED::ELEGANT_LIGHT, CRGB::DarkOrange);
+PixelLED led(LED_PIN, LED_COUNT, STEP, PixelLED::ELEGANT_LIGHT, CRGB::Red);
 
 void sleep(const double step, const unsigned long start);
 

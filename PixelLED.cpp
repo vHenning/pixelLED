@@ -15,7 +15,7 @@ PixelLED::PixelLED(int pin, int ledCount, double step, Mode lightMode, CRGB colo
     for (size_t i = 0; i < ledCount; ++i)
     {
         colors[i] = CRGB::Black;
-        filters[i] = RC(stepSize, 200, 0.0001);
+        filters[i] = RC(stepSize, 100, 0.001);
     }
 
     switch (pin)
@@ -225,7 +225,7 @@ void PixelLED::onOffStep()
 {
     // position = 0 is at the edges of the strip. Center is LED_COUNT / 2
     // double desiredPosition = switchOn ? (double)(leds) / 2.0 : 0;
-    double desiredPosition = switchOn ? leds / 2.0 : 0.0;
+    double desiredPosition = switchOn ? leds / 2.0 -1 : 0.0;
     
     double position = positionFilter.step(desiredPosition);
     // double position = desiredPosition;
@@ -240,7 +240,7 @@ void PixelLED::onOffStep()
 
     for (size_t i = 0; i < leds; ++i)
     {
-        bool pixelOn = i < position || leds - i < position;
+        bool pixelOn = i <= ceil(position) || leds - 1 - i <= ceil(position);
 
         double filterValue = filters[i].step(pixelOn ? 0.3 : 0.0);
         hsv.v = filterValue;
