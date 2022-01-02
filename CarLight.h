@@ -31,6 +31,12 @@ private:
     int leds;
 
     CRGB color;
+    double brightness;
+    const double NORMAL_BRIGHTNESS = 0.3;
+    const double BRAKE_BRIGHTNESS = 1.0;
+    bool useFilter;
+    bool turnFilterOnAfterChange;
+    bool turnFilterOffAfterChange;
 
     /**
      * Position and filter for the on/off animation

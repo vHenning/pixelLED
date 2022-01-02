@@ -14,6 +14,8 @@ void setup()
 {
     Serial.begin(115200);
     Serial.println("Initialized!");
+
+    light.turnOn();
 }
 
 void loop()
@@ -30,7 +32,7 @@ void loop()
     {
         // led.onOff();
         static bool on = true;
-        on ? light.turnOn() : light.turnOff();
+        on ? light.turnOnBrake() : light.turnOffBrake();
         on = !on;
         cyclesSinceSwap = 0;
     }

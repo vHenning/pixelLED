@@ -13,6 +13,10 @@ CarLight::CarLight(const int pin, const double stepTime, const int ledCount, con
     , leds(ledCount)
     , position(0)
     , color(lightColor)
+    , brightness(0.0)
+    , useFilter(true)
+    , turnFilterOffAfterChange(false)
+    , turnFilterOnAfterChange(false)
 {
     for (size_t i = 0; i < ledCount; ++i)
     {
@@ -46,6 +50,8 @@ CarLight::CarLight(const int pin, const double stepTime, const int ledCount, con
         case 33: FastLED.addLeds<WS2812B, 33, GRB>(colors, ledCount); break;
         default: break;
     }
+
+    brightness = NORMAL_BRIGHTNESS;
 }
 
 void CarLight::step()
@@ -62,7 +68,18 @@ void CarLight::step()
     for (size_t i = 0; i < leds; ++i)
     {
         bool illuminate = i < floor(position) || i > leds - ceil(position);
-        hsv.v = filters[i].step(illuminate ? 0.3 : 0.0);
+        double localBrightness = illuminate ? brightness : 0.0;
+        hsv.v = useFilter ? filters[i].step(localBrightness) : localBrightness;
+        if (turnFilterOnAfterChange)
+        {
+            useFilter = true;
+            turnFilterOnAfterChange = false;
+        }
+        if (abs(hsv.v - localBrightness) < std::numeric_limits<double>::epsilon() && turnFilterOffAfterChange)
+        {
+            useFilter = false;
+            turnFilterOffAfterChange = false;
+        }
         ColorConverter::rgb rgb = ColorConverter::hsv2rgb(hsv);
         colors[i].r = gamma8[(int)(rgb.r * max)];
         colors[i].g = gamma8[(int)(rgb.g * max)];
@@ -80,4 +97,18 @@ void CarLight::turnOn()
 void CarLight::turnOff()
 {
     on = false;
+}
+
+void CarLight::turnOnBrake()
+{
+    braking = true;
+    brightness = BRAKE_BRIGHTNESS;
+    useFilter = false;
+}
+
+void CarLight::turnOffBrake()
+{
+    braking = false;
+    brightness = NORMAL_BRIGHTNESS;
+    turnFilterOnAfterChange = true;
 }
