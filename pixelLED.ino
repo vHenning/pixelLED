@@ -1,10 +1,12 @@
 #include "PixelLED.h"
+#include "CarLight.h"
 
 #define LED_PIN 12
 #define LED_COUNT 144
 #define STEP 0.01
 
-PixelLED led(LED_PIN, LED_COUNT, STEP, PixelLED::ELEGANT_LIGHT, CRGB::Red);
+// PixelLED led(LED_PIN, LED_COUNT, STEP, PixelLED::ELEGANT_LIGHT, CRGB::Red);
+CarLight light(LED_PIN, STEP, LED_COUNT, CRGB::Red);
 
 void sleep(const double step, const unsigned long start);
 
@@ -21,11 +23,15 @@ void loop()
     ++cyclesSinceSwap;
 
     unsigned long start = micros();
-    led.step();
+    // led.step();
+    light.step();
 
     if (cyclesSinceSwap > cycleTime / STEP)
     {
-        led.onOff();
+        // led.onOff();
+        static bool on = true;
+        on ? light.turnOn() : light.turnOff();
+        on = !on;
         cyclesSinceSwap = 0;
     }
 
