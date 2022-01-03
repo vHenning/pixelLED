@@ -46,6 +46,7 @@ private:
     int emergencyBrakeCounter;
     int indicatorCounter;
     bool indicatorOn;
+    bool turnOffBlinker;
 
     /**
      * percent of whole light strip

@@ -21,6 +21,7 @@ CarLight::CarLight(const int pin, const double stepTime, const int ledCount, con
     , indicatorCounter(0.0)
     , blinker(OFF)
     , indicatorOn(false)
+    , turnOffBlinker(false)
 {
     for (size_t i = 0; i < ledCount; ++i)
     {
@@ -84,6 +85,10 @@ void CarLight::step()
     const float indicatorTime = 0.5;
     if (indicatorCounter++ * stepSize > indicatorTime)
     {
+        if (turnOffBlinker)
+        {
+            blinker = OFF;
+        }
         indicatorOn = !indicatorOn;
         indicatorCounter = 0;
     }
@@ -171,6 +176,7 @@ void CarLight::left()
         indicatorCounter = 0;
     }
     blinker = LEFT;
+    turnOffBlinker = false;
 }
 
 void CarLight::right()
@@ -180,11 +186,12 @@ void CarLight::right()
         indicatorCounter = 0;
     }
     blinker = RIGHT;
+    turnOffBlinker = false;
 }
 
 void CarLight::indicatorOff()
 {
-    blinker = OFF;
+    turnOffBlinker = true;
 }
 
 void CarLight::hazard()
@@ -194,4 +201,5 @@ void CarLight::hazard()
         indicatorCounter = 0;
     }
     blinker = HAZARD;
+    turnOffBlinker = false;
 }
