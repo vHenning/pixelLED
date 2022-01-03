@@ -32,7 +32,7 @@ void loop()
     {
         // led.onOff();
         static bool on = true;
-        on ? light.turnOnBrake() : light.turnOffBrake();
+        on ? light.hazard() : light.indicatorOff();
         on = !on;
         cyclesSinceSwap = 0;
     }

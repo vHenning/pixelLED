@@ -20,6 +20,11 @@ public:
     void turnOnEmergencyBrake();
     void turnOffEmergencyBrake();
 
+    void left();
+    void right();
+    void indicatorOff();
+    void hazard();
+
 private:
     bool on;
     bool braking;
@@ -37,6 +42,23 @@ private:
     bool useFilter;
     bool turnFilterOnAfterChange;
     bool turnFilterOffAfterChange;
+
+    int emergencyBrakeCounter;
+    int indicatorCounter;
+    bool indicatorOn;
+
+    /**
+     * percent of whole light strip
+     */
+    const float indicatorWidth = 0.2;
+
+    enum Blinker
+    {
+        OFF,
+        LEFT,
+        RIGHT,
+        HAZARD
+    } blinker;
 
     /**
      * Position and filter for the on/off animation

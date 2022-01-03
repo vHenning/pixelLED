@@ -17,6 +17,10 @@ CarLight::CarLight(const int pin, const double stepTime, const int ledCount, con
     , useFilter(true)
     , turnFilterOffAfterChange(false)
     , turnFilterOnAfterChange(false)
+    , emergencyBrakeCounter(0.0)
+    , indicatorCounter(0.0)
+    , blinker(OFF)
+    , indicatorOn(false)
 {
     for (size_t i = 0; i < ledCount; ++i)
     {
@@ -65,6 +69,25 @@ void CarLight::step()
     rgb.b = color.b / max;
     ColorConverter::hsv hsv = ColorConverter::rgb2hsv(rgb);
 
+    const double emergencyBrakeFrequency = 5; // Hz
+    const double emergencyBrakeHalfPeriod = 1.0 / (emergencyBrakeFrequency * 2);
+    if (emergencyBraking)
+    {
+        brightness = emergencyBrakeCounter++ * stepSize > emergencyBrakeHalfPeriod ? NORMAL_BRIGHTNESS : BRAKE_BRIGHTNESS;
+
+        if (emergencyBrakeCounter * stepSize > 2 * emergencyBrakeHalfPeriod)
+        {
+            emergencyBrakeCounter = 0;
+        }
+    }
+
+    const float indicatorTime = 0.5;
+    if (indicatorCounter++ * stepSize > indicatorTime)
+    {
+        indicatorOn = !indicatorOn;
+        indicatorCounter = 0;
+    }
+
     for (size_t i = 0; i < leds; ++i)
     {
         bool illuminate = i < floor(position) || i > leds - ceil(position);
@@ -81,6 +104,15 @@ void CarLight::step()
             turnFilterOffAfterChange = false;
         }
         ColorConverter::rgb rgb = ColorConverter::hsv2rgb(hsv);
+
+        if ((indicatorOn && (blinker == RIGHT || blinker == HAZARD) && i < leds * indicatorWidth)
+        ||  (indicatorOn && (blinker == LEFT || blinker == HAZARD) && i > leds - (leds * indicatorWidth)))
+        {
+            rgb.r = 1.0;
+            rgb.g = 1.0;
+            rgb.b = 0.0;
+        }
+
         colors[i].r = gamma8[(int)(rgb.r * max)];
         colors[i].g = gamma8[(int)(rgb.g * max)];
         colors[i].b = gamma8[(int)(rgb.b * max)];
@@ -110,5 +142,56 @@ void CarLight::turnOffBrake()
 {
     braking = false;
     brightness = NORMAL_BRIGHTNESS;
-    turnFilterOnAfterChange = true;
+    if (!emergencyBraking)
+    {
+        turnFilterOnAfterChange = true;
+    }
+}
+
+void CarLight::turnOnEmergencyBrake()
+{
+    emergencyBraking = true;
+    useFilter = false;
+    emergencyBrakeCounter = 0;
+}
+
+void CarLight::turnOffEmergencyBrake()
+{
+    emergencyBraking = false;
+    if (!braking)
+    {
+        turnFilterOnAfterChange = true;
+    }
+}
+
+void CarLight::left()
+{
+    if (blinker == OFF)
+    {
+        indicatorCounter = 0;
+    }
+    blinker = LEFT;
+}
+
+void CarLight::right()
+{
+    if (blinker == OFF)
+    {
+        indicatorCounter = 0;
+    }
+    blinker = RIGHT;
+}
+
+void CarLight::indicatorOff()
+{
+    blinker = OFF;
+}
+
+void CarLight::hazard()
+{
+    if (blinker == OFF)
+    {
+        indicatorCounter = 0;
+    }
+    blinker = HAZARD;
 }
