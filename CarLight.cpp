@@ -22,6 +22,8 @@ CarLight::CarLight(const int pin, const double stepTime, const int ledCount, con
     , blinker(OFF)
     , indicatorOn(false)
     , turnOffBlinker(false)
+    , police(false)
+    , policeCounter(0)
 {
     for (size_t i = 0; i < ledCount; ++i)
     {
@@ -93,6 +95,8 @@ void CarLight::step()
         indicatorCounter = 0;
     }
 
+    policeCounter++;
+
     for (size_t i = 0; i < leds; ++i)
     {
         bool illuminate = i < floor(position) || i > leds - ceil(position);
@@ -108,7 +112,35 @@ void CarLight::step()
             useFilter = false;
             turnFilterOffAfterChange = false;
         }
+
         ColorConverter::rgb rgb = ColorConverter::hsv2rgb(hsv);
+
+        if (police)
+        {
+            int millis = policeCounter * stepSize * 1000;
+
+            static bool on = false;
+            static bool left = false;
+
+            if (i == 0)
+            {
+                if (millis % 100 < stepSize)
+                {
+                    on = !on;
+                }
+                if (millis % 400 < stepSize)
+                {
+                    left = !left;
+                }
+            }
+
+            if ((left && on && (i > 80 && i < 100)) || (!left && on && (i < 54 && i > 34)))
+            {
+                rgb.r = 0.0;
+                rgb.g = 0.0;
+                rgb.b = 1.0;
+            }
+        }
 
         if ((indicatorOn && (blinker == RIGHT || blinker == HAZARD) && i < leds * indicatorWidth)
         ||  (indicatorOn && (blinker == LEFT || blinker == HAZARD) && i > leds - (leds * indicatorWidth)))
@@ -202,4 +234,14 @@ void CarLight::hazard()
     }
     blinker = HAZARD;
     turnOffBlinker = false;
+}
+
+void CarLight::policeOn()
+{
+    police = true;
+}
+
+void CarLight::policeOff()
+{
+    police = false;
 }

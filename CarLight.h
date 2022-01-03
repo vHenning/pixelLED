@@ -25,6 +25,9 @@ public:
     void indicatorOff();
     void hazard();
 
+    void policeOn();
+    void policeOff();
+
 private:
     bool on;
     bool braking;
@@ -47,6 +50,9 @@ private:
     int indicatorCounter;
     bool indicatorOn;
     bool turnOffBlinker;
+
+    unsigned int policeCounter;
+    bool police;
 
     /**
      * percent of whole light strip

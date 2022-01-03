@@ -16,6 +16,9 @@ void setup()
     Serial.println("Initialized!");
 
     light.turnOn();
+
+    delay(4000);
+    light.policeOn();
 }
 
 void loop()
@@ -32,7 +35,7 @@ void loop()
     {
         // led.onOff();
         static bool on = true;
-        on ? light.hazard() : light.indicatorOff();
+        // on ? light.hazard() : light.indicatorOff();
         on = !on;
         cyclesSinceSwap = 0;
     }
