@@ -2,7 +2,7 @@
 #define CAR_LIGHT_H
 
 #include <FastLED.h>
-#include "RC.h"
+#include "filters/RC.h"
 
 class CarLight
 {

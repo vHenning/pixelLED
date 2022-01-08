@@ -1,6 +1,6 @@
 #include "CarLight.h"
-#include "ColorConverter.h"
-#include "GammaCorrection.h"
+#include "colors/ColorConverter.h"
+#include "colors/GammaCorrection.h"
 
 CarLight::CarLight(const int pin, const double stepTime, const int ledCount, const CRGB lightColor)
     : on(false)
