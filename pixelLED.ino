@@ -14,9 +14,7 @@ void setup()
     Serial.println("Initialized!");
 
     light.turnOn();
-
-    delay(4000);
-    light.policeOn();
+    light.hazard();
 }
 
 void loop()

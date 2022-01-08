@@ -24,6 +24,8 @@ CarLight::CarLight(const int pin, const double stepTime, const int ledCount, con
     , turnOffBlinker(false)
     , police(false)
     , policeCounter(0)
+    , blinkerPosition(0)
+    , blinkerOffTime(0)
 {
     for (size_t i = 0; i < ledCount; ++i)
     {
@@ -64,6 +66,19 @@ CarLight::CarLight(const int pin, const double stepTime, const int ledCount, con
 void CarLight::step()
 {
     position = positionFilter.step(on ? (leds / 2.0) + 1 : 0);
+    if (blinkerOffTime > blinkerPause)
+    {
+        blinkerPosition += blinkerSpeed * stepSize;
+    }
+    else
+    {
+        blinkerOffTime += stepSize;
+    }
+    if (blinkerPosition > leds * indicatorWidth)
+    {
+        blinkerPosition -= leds * indicatorWidth;
+        blinkerOffTime = 0;
+    }
     
     ColorConverter::rgb rgb;
     double max = (double) 0xFF;
@@ -142,8 +157,8 @@ void CarLight::step()
             }
         }
 
-        if ((indicatorOn && (blinker == RIGHT || blinker == HAZARD) && i < leds * indicatorWidth)
-        ||  (indicatorOn && (blinker == LEFT || blinker == HAZARD) && i > leds - (leds * indicatorWidth)))
+        if (((blinker == RIGHT || blinker == HAZARD) && i < leds * indicatorWidth && i > (leds * indicatorWidth - blinkerPosition))
+        ||  ((blinker == LEFT || blinker == HAZARD) && i > leds - (leds * indicatorWidth)) && i < leds - (leds * indicatorWidth) + blinkerPosition)
         {
             rgb.r = 1.0;
             rgb.g = 1.0;
@@ -206,6 +221,7 @@ void CarLight::left()
     if (blinker == OFF)
     {
         indicatorCounter = 0;
+        blinkerPosition = 0;
     }
     blinker = LEFT;
     turnOffBlinker = false;
@@ -216,6 +232,7 @@ void CarLight::right()
     if (blinker == OFF)
     {
         indicatorCounter = 0;
+        blinkerPosition = 0;
     }
     blinker = RIGHT;
     turnOffBlinker = false;
@@ -231,6 +248,7 @@ void CarLight::hazard()
     if (blinker == OFF)
     {
         indicatorCounter = 0;
+        blinkerPosition = 0;
     }
     blinker = HAZARD;
     turnOffBlinker = false;
